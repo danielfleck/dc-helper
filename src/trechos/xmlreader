@@ -1,0 +1,2 @@
+apt-get install --assume-yes libxml2 libxml2-dev \
+    && docker-php-ext-install -j$(nproc) xml

@@ -1,0 +1,2 @@
+apt-get install --assume-yes libicu-dev \
+    && docker-php-ext-install -j$(nproc) intl

@@ -1,0 +1,2 @@
+apt-get install --assume-yes libonig-dev  \
+    && docker-php-ext-install -j$(nproc) mbstring

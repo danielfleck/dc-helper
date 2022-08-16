@@ -1,0 +1,6 @@
+apt-get install --assume-yes libz-dev\
+    && docker-php-source extract \
+    && mkdir -p /usr/src/php/ext/grpc \
+    && curl -fsSL https://pecl.php.net/get/grpc-1.48.0.tgz | tar xvz -C /usr/src/php/ext/grpc --strip 1 \
+    && docker-php-ext-install -j$(nproc) grpc \
+    && docker-php-source delete

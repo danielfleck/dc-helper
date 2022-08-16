@@ -1,0 +1,2 @@
+apt-get install --assume-yes freetds-bin freetds-dev freetds-common \
+    && docker-php-ext-install -j$(nproc) pdo_dblib

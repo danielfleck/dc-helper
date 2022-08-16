@@ -1,0 +1,22 @@
+{
+    "name": "danielfleck/dc-helper",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Danielfleck\\DcHelper\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Daniel Rodrigo Fleck",
+            "email": "danielfleck@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+    	"php": ">8.1",
+    	"ext-imagick": "*",
+	"ext-curl": "*"
+    }
+}

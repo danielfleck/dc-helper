@@ -1,0 +1,2 @@
+apt install --assume-yes firebird-dev \
+    && docker-php-ext-install -j$(nproc) pdo_firebird

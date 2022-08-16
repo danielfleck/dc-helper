@@ -1,0 +1,2 @@
+apt-get install --assume-yes aspell-pt-br libxml2-dev libenchant-2-2 libenchant-2-dev \
+    && docker-php-ext-install -j$(nproc) enchant

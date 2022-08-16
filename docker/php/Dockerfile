@@ -2,46 +2,6 @@ FROM php:8-apache
 
 RUN set -eux && apt-get update -y && apt-get -y upgrade
 
-#RUN docker-php-ext-install -j$(nproc) bcmath
-#
-#RUN apt-get install -y lbzip2 bzip2 libbz2-dev \
-#    && docker-php-ext-install -j$(nproc) bz2
-#
-#RUN docker-php-ext-install -j$(nproc) calendar
-#RUN docker-php-ext-install -j$(nproc) ctype
-
-#RUN apt-get install -y curl libcurl4-openssl-dev \
-#    && docker-php-ext-install -j$(nproc) curl \
-
-#RUN docker-php-ext-install -j$(nproc) dl_test
-
-#RUN apt-get install -y libxml2 libxml2-dev\
-#    && docker-php-ext-install -j$(nproc) dom \
-
-#RUN apt-get install -y enchant-2 libenchant-2-2 libenchant-2-dev \
-#    && docker-php-ext-install -j$(nproc) enchant
-#
-#RUN docker-php-ext-install -j$(nproc) exif
-#
-#RUN docker-php-ext-install -j$(nproc) ffi
-#
-#RUN docker-php-ext-install -j$(nproc) fileinfo
-#
-#RUN docker-php-ext-install -j$(nproc) filter
-#
-#RUN apt-get install -y libssh-dev\
-#    && docker-php-ext-install -j$(nproc) ftp \
-
-#RUN apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libpnglite-dev \
-#    libpng-dev libwebp-dev libxpm-dev libfreetype6-dev zlib1g-dev libxml2-dev \
-#    && docker-php-ext-configure gd --with-freetype --with-webp --with-jpeg --with-xpm \
-#    && docker-php-ext-install -j$(nproc) gd
-
-#RUN docker-php-ext-install -j$(nproc) gettext
-
-#RUN apt-get install -y libgmp-dev \
-#    && docker-php-ext-install -j$(nproc) gmp
-
 #RUN docker-php-ext-install -j$(nproc) iconv
 
 #RUN apt-get install -y libc-client-dev libkrb5-dev \

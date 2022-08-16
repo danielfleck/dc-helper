@@ -1,0 +1,6 @@
+apt-get install --assume-yes libgraphicsmagick++1-dev libmagickwand-dev \
+    && docker-php-source extract \
+    && mkdir -p /usr/src/php/ext/imagick \
+    && curl -fsSL https://pecl.php.net/get/imagick-3.7.0.tgz | tar xvz -C /usr/src/php/ext/imagick --strip 1 \
+    && docker-php-ext-install -j$(nproc) imagick \
+    && docker-php-source delete

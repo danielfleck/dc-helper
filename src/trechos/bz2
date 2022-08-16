@@ -1,0 +1,2 @@
+apt-get install -y lbzip2 bzip2 libbz2-dev \
+    && docker-php-ext-install -j$(nproc) bz2

@@ -1,0 +1,2 @@
+apt-get install --assume-yes libldap2-dev \
+    && docker-php-ext-install -j$(nproc) ldap
