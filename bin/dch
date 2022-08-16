@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+
+UNAMEOUT="$(uname -s)"
+
+case "${UNAMEOUT}" in
+    Linux*)
+        MACHINE=linux
+        ;;
+    *)
+        MACHINE=""
+esac
+
+if [ "$MACHINE" != "linux" ];
+then
+    echo "Sistema [$(uname -s)] não suportado." >&2
+
+    exit 1
+fi
+
+if [ -t 1 ]; then
+    ncolors=$(tput colors)
+
+    if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ];
+    then
+        BOLD="$(tput bold)"
+        YELLOW="$(tput setaf 3)"
+        GREEN="$(tput setaf 2)"
+        NC="$(tput sgr0)"
+    fi
+fi
+
+function display_help {
+    echo "DC Helper"
+    echo
+    echo "${YELLOW}Uso:${NC}" >&2
+    echo "  dc COMMAND [options] [arguments]"
+    echo
+    echo "Comandos não listados a seguir são passados para o docker-compose."
+    echo
+    echo "${YELLOW}docker-compose :${NC}"
+    echo "  ${GREEN}dc up${NC}        Inicía os contêineres"
+    echo "  ${GREEN}dc up -d${NC}     Inicia os contêineres em segundo plano"
+    echo "  ${GREEN}dc stop${NC}      Para os contêineres"
+    echo "  ${GREEN}dc restart${NC}   Reinicía os contêineres"
+    echo "  ${GREEN}dc ps${NC}        Mostra a situação dos contêineres"
+    echo
+    echo "${YELLOW}Comandos PHP :${NC}"
+    echo "  ${GREEN}dc php ...${NC}   Executa o comando php dentro do contêiner"
+    echo "  ${GREEN}dc php -v${NC}"
+    echo
+    echo "${YELLOW}Comandos de bancos de dados:${NC}"
+    echo "  ${GREEN}dc psql${NC}      Inicia o [PostgreSQL interactive terminal] dentro do contêiner postgresql"
+    echo "  ${GREEN}dc redis${NC}     Inicia o [Command-line client to redis-server] dentro do contêiner postgresql"
+    echo
+    echo "${YELLOW}Comandos para o contêiner principal:${NC}"
+    echo "  ${GREEN}dc shell${NC}        Inicia sessão shell dentro do contêiner app"
+    echo "  ${GREEN}dc bash${NC}         Atalho para 'dc shell'"
+    echo "  ${GREEN}dc root-shell${NC}   Inicia sessão shell como usuário root dentro do contêiner app"
+    echo "  ${GREEN}dc root-bash${NC}    Atalho para 'dc root-shell'"
+    echo
+    echo "${YELLOW}Executáveis:${NC}"
+    echo "  ${GREEN}dc bin ...${NC}   Executa um script executável do Composer que esteja em vendor/bin"
+
+    exit 1
+}
+
+if [ $# -gt 0 ]; then
+    if [ "$1" == "help" ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+        display_help
+    fi
+else
+    display_help
+fi
+
+if [ -f ./.env ]; then
+    source ./.env
+fi
+
+export APP_SERVICE=${APP_SERVICE:-"app"}
+export POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-$APP_SERVICE}
+export PGPASSWORD=${POSTGRES_PASSWORD}
+export POSTGRES_USER=${POSTGRES_USER:-$APP_SERVICE}
+export POSTGRES_DB=${POSTGRES_DB:-$APP_SERVICE}
+export POSTGRES_PORT=${POSTGRES_PORT:-5432}
+
+export WWWUSER=${WWWUSER:-$UID}
+export WWWGROUP=${WWWGROUP:-$(id -g)}
+
+function dc_is_not_running {
+    echo "${BOLD}Os contêineres não estão em execução.${NC}" >&2
+    echo "" >&2
+    echo "${BOLD}Para iniciar, você pode utilizar os comandos:${NC} './vendor/bin/dc up' or './vendor/bin/dc up -d'" >&2
+
+    exit 1
+}
+
+if docker compose > /dev/null 2>&1 ;
+then
+    DOCKER_COMPOSE=(docker compose)
+else
+    DOCKER_COMPOSE=(docker-compose)
+fi
+
+EXEC="yes"
+
+if [ -z "$DC_SKIP_CHECKS" ]; then
+
+    if ! docker info > /dev/null 2>&1 ; then
+        echo "${BOLD}Docker não está em execução.${NC}" >&2
+
+        exit 1
+    fi
+
+    if "${DOCKER_COMPOSE[@]}" ps "$APP_SERVICE" 2>&1 | grep 'Exit\|exited'; then
+        echo "${BOLD}Encerrando contêineres antigos...${NC}" >&2
+
+        "${DOCKER_COMPOSE[@]}" down --remove-orphans --rmi local > /dev/null 2>&1
+
+        EXEC="no"
+    elif [ -z "$("${DOCKER_COMPOSE[@]}" ps -q)" ]; then
+        EXEC="no"
+    fi
+fi
+
+ARGS=()
+
+if [ "$1" == "php" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec -u "$WWWUSER")
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("$APP_SERVICE" "php" "$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "bin" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec -u "$WWWUSER")
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("$APP_SERVICE" ./vendor/bin/"$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "composer" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec -u "$WWWUSER")
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("$APP_SERVICE" "composer" "$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "psql" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec)
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=(postgres bash -c)
+        ARGS+=("PGPASSWORD=\${PGPASSWORD} psql -U \${POSTGRES_USER} \${POSTGRES_DB}")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "shell" ] || [ "$1" == "bash" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec -u "$WWWUSER")
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("$APP_SERVICE" bash "$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "root-shell" ] || [ "$1" == "root-bash" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec -u root)
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("$APP_SERVICE" bash "$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "redis" ] ; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec)
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=(redis redis-cli)
+    else
+        dc_is_not_running
+    fi
+
+else
+    ARGS+=("$@")
+fi
+
+"${DOCKER_COMPOSE[@]}" "${ARGS[@]}"
