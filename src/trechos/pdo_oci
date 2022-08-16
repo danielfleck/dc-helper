@@ -17,3 +17,4 @@ apt-get install --assume-yes wget unzip libaio1 libaio-dev \
     && docker-php-ext-configure oci8 --with-oci8=shared,instantclient,/opt/oracle/instantclient_21_7,21.7 \
     && docker-php-ext-configure pdo_oci --with-pdo-oci=shared,instantclient,/opt/oracle/instantclient_21_7,21.7 \
     && docker-php-ext-install -j$(nproc) oci8
+    && docker-php-ext-install -j$(nproc) pdo_oci
