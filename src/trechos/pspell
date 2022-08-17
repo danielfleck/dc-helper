@@ -1,1 +1,2 @@
-docker-php-ext-install -j$(nproc) pspell
+apt-get install --assume-yes libpspell-dev aspell-pt-br/stable  \
+    && docker-php-ext-install -j$(nproc) pspell

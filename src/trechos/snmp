@@ -1,1 +1,2 @@
-docker-php-ext-install -j$(nproc) snmp
+apt-get install --assume-yes libsnmp-dev \
+    && docker-php-ext-install -j$(nproc) snmp

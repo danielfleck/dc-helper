@@ -1,1 +1,17 @@
-docker-php-ext-install -j$(nproc) v8js
+apt-get install --assume-yes build-essential curl git python3 libglib2.0-dev \
+    && cd /tmp \
+    && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
+    && export PATH=`pwd`/depot_tools:"$PATH" \
+    && mkdir /tmp/v8 \
+    && curl -fsSL https://chromium.googlesource.com/v8/v8.git/+archive/refs/tags/10.6.188.tar.gz  | tar xvz -C /tmp/v8 --strip 1 \
+    && /tmp/depot_tools/fetch --verbose v8 \
+    && cd v8 \
+    && docker-php-source extract \
+    && mkdir -p /usr/src/php/ext/v8js \
+    && curl -fsSL https://pecl.php.net/get/v8js-2.1.2.tgz | tar xvz -C /usr/src/php/ext/v8js --strip 1 \
+    && cd /usr/src/php/ext/v8js \
+    && phpize \
+    && docker-php-ext-configure v8js --with-v8js \
+    && docker-php-ext-install -j$(nproc) v8js \
+    && docker-php-source delete
+
