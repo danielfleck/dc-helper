@@ -1,1 +1,2 @@
-docker-php-ext-install -j$(nproc) zip
+apt-get install --assume-yes libzip-dev \
+    && docker-php-ext-install -j$(nproc) zip

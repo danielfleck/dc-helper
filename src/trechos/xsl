@@ -1,1 +1,2 @@
-docker-php-ext-install -j$(nproc) xsl
+apt-get install --assume-yes libxslt1-dev \
+    && docker-php-ext-install -j$(nproc) xsl
