@@ -1,2 +1,0 @@
-apt-get install --assume-yes libpq-dev \
-    && docker-php-ext-install -j$(nproc) pdo_pgsql

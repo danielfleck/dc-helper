@@ -1,6 +1,0 @@
-apt-get install --assume-yes libgpgme11-dev\
-    && docker-php-source extract \
-    && mkdir -p /usr/src/php/ext/gnupg \
-    && curl -fsSL https://pecl.php.net/get/gnupg-1.5.1.tgz | tar xvz -C /usr/src/php/ext/gnupg --strip 1 \
-    && docker-php-ext-install -j$(nproc) gnupg \
-    && docker-php-source delete

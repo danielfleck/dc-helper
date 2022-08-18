@@ -1,5 +1,0 @@
-docker-php-source extract \
-    && mkdir -p /usr/src/php/ext/igbinary \
-    && curl -fsSL https://pecl.php.net/get/igbinary-3.2.7.tgz | tar xvz -C /usr/src/php/ext/igbinary --strip 1 \
-    && docker-php-ext-install -j$(nproc) igbinary \
-    && docker-php-source delete

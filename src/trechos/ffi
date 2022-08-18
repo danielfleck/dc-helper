@@ -1,2 +1,0 @@
-apt-get install --assume-yes libffi-dev \
-    && docker-php-ext-install -j$(nproc) ffi

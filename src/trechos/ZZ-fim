@@ -1,4 +1,0 @@
-export DEBIAN_FRONTEND=noninteractive \
-    && set +eux \
-    && apt-get clean --assume-yes && apt-get autoremove --assume-yes \
-    && rm -r /var/lib/apt/lists/*

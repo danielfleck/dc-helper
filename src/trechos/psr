@@ -1,6 +1,0 @@
-apt-get install --assume-yes libsodium-dev \
-    && docker-php-source extract \
-    && mkdir -p /usr/src/php/ext/psr \
-    && curl -fsSL https://pecl.php.net/get/psr-1.2.0.tgz | tar xvz -C /usr/src/php/ext/psr --strip 1 \
-    && docker-php-ext-install -j$(nproc) psr \
-    && docker-php-source delete

@@ -1,8 +1,0 @@
-apt-get install --assume-yes librabbitmq4 librabbitmq-dev \
-    && docker-php-source extract \
-    && mkdir -p /usr/src/php/ext/amqp \
-    && curl -fsSL https://pecl.php.net/get/amqp-1.11.0.tgz | tar xvz -C /usr/src/php/ext/amqp --strip 1 \
-    && docker-php-ext-install -j$(nproc) amqp \
-    && docker-php-source delete
-
-

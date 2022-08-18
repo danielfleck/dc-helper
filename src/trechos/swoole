@@ -1,6 +1,0 @@
-apt-get install --assume-yes libssh2-1-dev \
-    && docker-php-source extract \
-    && mkdir -p /usr/src/php/ext/swoole \
-    && curl -fsSL https://pecl.php.net/get/swoole-5.0.0.tgz | tar xvz -C /usr/src/php/ext/swoole --strip 1 \
-    && docker-php-ext-install -j$(nproc) swoole \
-    && docker-php-source delete

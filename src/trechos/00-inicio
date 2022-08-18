@@ -1,5 +1,0 @@
-export DEBIAN_FRONTEND=noninteractive \
-    && set -eux \
-    && apt-get update --no-allow-insecure-repositories
-    # \
-    # && apt-get upgrade --assume-yes --auto-remove

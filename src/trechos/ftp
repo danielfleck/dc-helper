@@ -1,2 +1,0 @@
-apt-get install --assume-yes libssh-dev \
-    && docker-php-ext-install -j$(nproc) ftp

@@ -1,2 +1,0 @@
-apt-get install --assume-yes libsqlite3-dev \
-    && docker-php-ext-install -j$(nproc) pdo_sqlite

@@ -1,2 +1,0 @@
-apt-get install --assume-yes libtidy-dev \
-    && docker-php-ext-install -j$(nproc) tidy
