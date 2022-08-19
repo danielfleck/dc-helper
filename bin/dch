@@ -94,6 +94,19 @@ function dc_is_not_running {
     exit 1
 }
 
+function conteiner_selecionado {
+    case "${1}" in
+        php)
+            echo "é php"
+            ;;
+        postgres)
+            echo "é postgres"
+            ;;
+        *)
+            echo "é outro"
+    esac
+}
+
 if [ "$1" == "init" ]; then
     shift 1
 
@@ -108,15 +121,19 @@ if [ "$1" == "init" ]; then
         echo "Quais contêineres deseja executar? Estão disponíveis: "
         echo
         # shellcheck disable=SC2012
-        DISPONIVEIS=$(ls "${SRC}/dockerfile" | tr "\n" " ")
-        DISPONIVEIS_REGEX=$(echo "(${DISPONIVEIS})" | tr ' ' '|')
+        DISPONIVEIS=$(ls "${SRC}/dockerfile" | tr "\n" " " | sed "s/[ ]$//g")
+        DISPONIVEIS_REGEX=$(echo -n "(${DISPONIVEIS})" | tr -d "\n" | tr " " "|")
         echo "$DISPONIVEIS" | tr "\n" " "
         echo
         echo
         read -r -p "Indique separando-os por espaço: " CONTEINERES
-        CONTEINERES=$(echo "$CONTEINERES" | tr -s " ")
+
+        CONTEINERES=$(echo "$CONTEINERES" | tr -s " " | tr " " "\n" | sort | uniq | tr "\n" " ")
         for CONTEINER in $CONTEINERES; do
-          echo "$CONTEINER" | grep -E -c "$DISPONIVEIS_REGEX"
+          if [ $(echo "$CONTEINER" | grep -E -c "$DISPONIVEIS_REGEX") = "1" ]; then
+            conteiner_selecionado $CONTEINER
+          fi
+
         done
 
         exit 0

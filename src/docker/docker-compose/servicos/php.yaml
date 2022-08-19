@@ -9,7 +9,10 @@
         - NO_PROXY=${no_proxy:-}
     env_file:
       - .env
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - "./:/var/www/html"
     ports:
       - 80:80
+      - 443:443
