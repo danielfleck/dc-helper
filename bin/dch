@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 UNAMEOUT="$(uname -s)"
 
@@ -33,39 +33,42 @@ function display_help {
     echo "DC Helper"
     echo
     echo "${YELLOW}Uso:${NC}" >&2
-    echo "  dc COMMAND [options] [arguments]"
+    echo "  dch COMMAND [options] [arguments]"
     echo
     echo "Comandos não listados a seguir são passados para o docker-compose."
     echo
+    echo "${YELLOW}Configuração Inicial :${NC}"
+    echo "  ${GREEN}dch init${NC}      Cria arquivos de configuração do docker-compose"
+    echo
     echo "${YELLOW}docker-compose :${NC}"
-    echo "  ${GREEN}dc up${NC}        Inicía os contêineres"
-    echo "  ${GREEN}dc up -d${NC}     Inicia os contêineres em segundo plano"
-    echo "  ${GREEN}dc stop${NC}      Para os contêineres"
-    echo "  ${GREEN}dc restart${NC}   Reinicía os contêineres"
-    echo "  ${GREEN}dc ps${NC}        Mostra a situação dos contêineres"
+    echo "  ${GREEN}dch up${NC}        Inicia os contêineres"
+    echo "  ${GREEN}dch up -d${NC}     Inicia os contêineres em segundo plano"
+    echo "  ${GREEN}dch stop${NC}      Para os contêineres"
+    echo "  ${GREEN}dch restart${NC}   Reinicia os contêineres"
+    echo "  ${GREEN}dch ps${NC}        Mostra a situação dos contêineres"
     echo
     echo "${YELLOW}Comandos PHP :${NC}"
-    echo "  ${GREEN}dc php ...${NC}   Executa o comando php dentro do contêiner"
-    echo "  ${GREEN}dc php -v${NC}"
+    echo "  ${GREEN}dch php ...${NC}   Executa o comando php dentro do contêiner"
+    echo "  ${GREEN}dch php -v${NC}"
     echo
     echo "${YELLOW}Comandos de bancos de dados:${NC}"
-    echo "  ${GREEN}dc psql${NC}      Inicia o [PostgreSQL interactive terminal] dentro do contêiner postgresql"
-    echo "  ${GREEN}dc redis${NC}     Inicia o [Command-line client to redis-server] dentro do contêiner postgresql"
+    echo "  ${GREEN}dch psql${NC}      Inicia o [PostgreSQL interactive terminal] dentro do contêiner postgresql"
+    echo "  ${GREEN}dch redis${NC}     Inicia o [Command-line client to redis-server] dentro do contêiner postgresql"
     echo
     echo "${YELLOW}Comandos para o contêiner principal:${NC}"
-    echo "  ${GREEN}dc shell${NC}        Inicia sessão shell dentro do contêiner app"
-    echo "  ${GREEN}dc bash${NC}         Atalho para 'dc shell'"
-    echo "  ${GREEN}dc root-shell${NC}   Inicia sessão shell como usuário root dentro do contêiner app"
-    echo "  ${GREEN}dc root-bash${NC}    Atalho para 'dc root-shell'"
+    echo "  ${GREEN}dch shell${NC}        Inicia sessão shell dentro do contêiner app"
+    echo "  ${GREEN}dch bash${NC}         Atalho para 'dch shell'"
+    echo "  ${GREEN}dch root-shell${NC}   Inicia sessão shell como usuário root dentro do contêiner app"
+    echo "  ${GREEN}dch root-bash${NC}    Atalho para 'dch root-shell'"
     echo
     echo "${YELLOW}Executáveis:${NC}"
-    echo "  ${GREEN}dc bin ...${NC}   Executa um script executável do Composer que esteja em vendor/bin"
+    echo "  ${GREEN}dch bin ...${NC}   Executa um script executável do Composer que esteja em vendor/bin"
 
     exit 1
 }
 
 if [ $# -gt 0 ]; then
-    if [ "$1" == "help" ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
+    if [ "$1" == "ajuda" ] || [ "$1" == "help" ] || [ "$1" == "-h" ] || [ "$1" == "-help" ] || [ "$1" == "--help" ]; then
         display_help
     fi
 else
@@ -83,16 +86,43 @@ export POSTGRES_USER=${POSTGRES_USER:-$APP_SERVICE}
 export POSTGRES_DB=${POSTGRES_DB:-$APP_SERVICE}
 export POSTGRES_PORT=${POSTGRES_PORT:-5432}
 
-export WWWUSER=${WWWUSER:-$UID}
-export WWWGROUP=${WWWGROUP:-$(id -g)}
-
 function dc_is_not_running {
     echo "${BOLD}Os contêineres não estão em execução.${NC}" >&2
     echo "" >&2
-    echo "${BOLD}Para iniciar, você pode utilizar os comandos:${NC} './vendor/bin/dc up' or './vendor/bin/dc up -d'" >&2
+    echo "${BOLD}Para iniciar, você pode utilizar os comandos:${NC} './vendor/bin/dch up' or './vendor/bin/dch up -d'" >&2
 
     exit 1
 }
+
+if [ "$1" == "init" ]; then
+    shift 1
+
+    if [ -d docker ] || [ -f docker-compose.yaml ]; then
+        echo "A pasta docker ou o arquivo docker-compose.yaml já existem!" >&2
+        exit 1
+    else
+        DIRTMP="/tmp/dch_$(date +%s)" && mkdir "$DIRTMP"
+        DCFILE="$DIRTMP/docker-compose.yaml" && touch "$DCFILE"
+        SRC="src/docker"
+        clear
+        echo "Quais contêineres deseja executar? Estão disponíveis: "
+        echo
+        # shellcheck disable=SC2012
+        DISPONIVEIS=$(ls "${SRC}/dockerfile" | tr "\n" " ")
+        DISPONIVEIS_REGEX=$(echo "(${DISPONIVEIS})" | tr ' ' '|')
+        echo "$DISPONIVEIS" | tr "\n" " "
+        echo
+        echo
+        read -r -p "Indique separando-os por espaço: " CONTEINERES
+        CONTEINERES=$(echo "$CONTEINERES" | tr -s " ")
+        for CONTEINER in $CONTEINERES; do
+          echo "$CONTEINER" | grep -E -c "$DISPONIVEIS_REGEX"
+        done
+
+        exit 0
+    fi
+
+fi
 
 if docker compose > /dev/null 2>&1 ;
 then
@@ -128,7 +158,7 @@ if [ "$1" == "php" ]; then
     shift 1
 
     if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec -u "$WWWUSER")
+        ARGS+=(exec)
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=("$APP_SERVICE" "php" "$@")
     else
@@ -139,7 +169,7 @@ elif [ "$1" == "bin" ]; then
     shift 1
 
     if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec -u "$WWWUSER")
+        ARGS+=(exec)
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=("$APP_SERVICE" ./vendor/bin/"$@")
     else
@@ -150,7 +180,7 @@ elif [ "$1" == "composer" ]; then
     shift 1
 
     if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec -u "$WWWUSER")
+        ARGS+=(exec)
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=("$APP_SERVICE" "composer" "$@")
     else
@@ -173,7 +203,7 @@ elif [ "$1" == "shell" ] || [ "$1" == "bash" ]; then
     shift 1
 
     if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec -u "$WWWUSER")
+        ARGS+=(exec)
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=("$APP_SERVICE" bash "$@")
     else
