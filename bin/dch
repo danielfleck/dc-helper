@@ -168,7 +168,7 @@ if [ "$1" == "init" ]; then
         DIRTMP="/tmp/dch_$(date +%s)" && mkdir -p "$DIRTMP"
         DOCKERFILETMP="$DIRTMP/dockerfile" && mkdir -p "$DOCKERFILETMP"
         DOCKERCOMPOSETMP="$DIRTMP/dockercompose" && mkdir -p "$DOCKERCOMPOSETMP"
-        SRC="src/docker"
+        SRC="vendor/danielfleck/dchelper/src/docker"
         clear
         echo "Quais contêineres deseja executar? Estão disponíveis: "
         echo
