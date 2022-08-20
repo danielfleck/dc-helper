@@ -1,0 +1,2 @@
+VOLUME /home/node
+WORKDIR /home/node

@@ -266,6 +266,28 @@ elif [ "$1" == "composer" ]; then
         dc_is_not_running
     fi
 
+elif [ "$1" == "node" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec)
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("node" "node" "$@")
+    else
+        dc_is_not_running
+    fi
+
+elif [ "$1" == "yarn" ]; then
+    shift 1
+
+    if [ "$EXEC" == "yes" ]; then
+        ARGS+=(exec)
+        [ ! -t 0 ] && ARGS+=(-T)
+        ARGS+=("node" "yarn" "$@")
+    else
+        dc_is_not_running
+    fi
+
 elif [ "$1" == "psql" ]; then
     shift 1
 
