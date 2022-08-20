@@ -2,6 +2,8 @@
 
 UNAMEOUT="$(uname -s)"
 
+DCHELPERDIR="${PWD}/vendor/danielfleck/dchelper"
+
 case "${UNAMEOUT}" in
     Linux*)
         MACHINE=linux
@@ -95,16 +97,65 @@ function dc_is_not_running {
 }
 
 function conteiner_selecionado {
+    # $1 nome do contêiner
+    # $2 diretório temporário do dockerfile
+    # $3 diretório temporário do docker-compose.yaml
+
+    cp "${DCHELPERDIR}/src/docker/docker-compose/00-inicio" "${3}/00-inicio"
+    cp "${DCHELPERDIR}/src/docker/docker-compose/ZZ-fim" "${3}/ZZ-fim"
+
+    DOCKERFILECONTEINERORI="${DCHELPERDIR}/src/docker/dockerfile/${1}"
+    DOCKERFILECONTEINERDEST="${2}/${1}" && mkdir "$DOCKERFILECONTEINERDEST"
+
+    cat "${DOCKERFILECONTEINERORI}/00-inicio" > "$DOCKERFILECONTEINERDEST/Dockerfile"
+
+    if [ -d "${DOCKERFILECONTEINERORI}/arquivos" ]; then
+        cp -r "${DOCKERFILECONTEINERORI}/arquivos/" "$DOCKERFILECONTEINERDEST/"
+    fi
+
+    DOCKERCOMPOSECONTEINERORI="${DCHELPERDIR}/src/docker/docker-compose/servicos/${1}.yaml"
+
     case "${1}" in
-        php)
-            echo "é php"
-            ;;
-        postgres)
-            echo "é postgres"
-            ;;
-        *)
-            echo "é outro"
+      php)
+          DOCKERCOMPOSECONTEINERDEST="${3}/10-${1}.yaml"
+          ;;
+      node)
+          DOCKERCOMPOSECONTEINERDEST="${3}/20-${1}.yaml"
+          ;;
+      postgres)
+          DOCKERCOMPOSECONTEINERDEST="${3}/30-${1}.yaml"
+          ;;
+      *)
+          DOCKERCOMPOSECONTEINERDEST="${3}/${1}.yaml"
     esac
+
+    if [ -d "${DOCKERFILECONTEINERORI}/modulos" ]; then
+        echo "------------------------------------"
+        echo "Pacotes disponiveis para o contêiner ${1}:"
+        echo
+
+        # shellcheck disable=SC2012
+        PCTDISPONIVEIS=$(ls "${DOCKERFILECONTEINERORI}/modulos" | tr "\n" " " | sed "s/[ ]$//g")
+        PCTDISPONIVEIS_REGEX=$(echo -n "(${PCTDISPONIVEIS})" | tr -d "\n" | tr " " "|")
+        echo "$PCTDISPONIVEIS" | tr "\n" " "
+        echo
+        echo
+        read -r -p "Indique separando-os por espaço: " PACOTES
+
+        PACOTES=$(echo "$PACOTES" | tr -s " " | tr " " "\n" | sort | uniq | tr "\n" " ")
+
+        for PACOTE in $PACOTES; do
+          if [ "$(echo "$PACOTE" | grep -E -c "$PCTDISPONIVEIS_REGEX")" = "1" ]; then
+              cat "$DOCKERFILECONTEINERORI/modulos/${PACOTE}" >> "$DOCKERFILECONTEINERDEST/Dockerfile"
+          fi
+
+        done
+    fi
+
+    cp "$DOCKERCOMPOSECONTEINERORI" "$DOCKERCOMPOSECONTEINERDEST"
+
+    cat "${DOCKERFILECONTEINERORI}/ZZ-fim" >> "$DOCKERFILECONTEINERDEST/Dockerfile"
+
 }
 
 if [ "$1" == "init" ]; then
@@ -114,8 +165,9 @@ if [ "$1" == "init" ]; then
         echo "A pasta docker ou o arquivo docker-compose.yaml já existem!" >&2
         exit 1
     else
-        DIRTMP="/tmp/dch_$(date +%s)" && mkdir "$DIRTMP"
-        DCFILE="$DIRTMP/docker-compose.yaml" && touch "$DCFILE"
+        DIRTMP="/tmp/dch_$(date +%s)" && mkdir -p "$DIRTMP"
+        DOCKERFILETMP="$DIRTMP/dockerfile" && mkdir -p "$DOCKERFILETMP"
+        DOCKERCOMPOSETMP="$DIRTMP/dockercompose" && mkdir -p "$DOCKERCOMPOSETMP"
         SRC="src/docker"
         clear
         echo "Quais contêineres deseja executar? Estão disponíveis: "
@@ -129,12 +181,22 @@ if [ "$1" == "init" ]; then
         read -r -p "Indique separando-os por espaço: " CONTEINERES
 
         CONTEINERES=$(echo "$CONTEINERES" | tr -s " " | tr " " "\n" | sort | uniq | tr "\n" " ")
-        for CONTEINER in $CONTEINERES; do
-          if [ $(echo "$CONTEINER" | grep -E -c "$DISPONIVEIS_REGEX") = "1" ]; then
-            conteiner_selecionado $CONTEINER
-          fi
 
+        for CONTEINER in $CONTEINERES; do
+          if [ "$(echo "$CONTEINER" | grep -E -c "$DISPONIVEIS_REGEX")" = "1" ]; then
+            conteiner_selecionado "$CONTEINER" "$DOCKERFILETMP" "$DOCKERCOMPOSETMP"
+          fi
         done
+
+        if [ -f "./docker-compose.yaml" ]; then
+          cp "./docker-compose.yaml" "./docker-compose.yaml_$(date +%s)"
+        fi
+
+        for arquivo in $(find "${DOCKERCOMPOSETMP}" -type f | sort); do
+          cat "$arquivo" >> docker-compose.yaml
+        done;
+
+        mv -v "${DOCKERFILETMP}" ./docker
 
         exit 0
     fi

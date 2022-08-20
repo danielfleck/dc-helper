@@ -1,0 +1,6 @@
+  elastic:
+    build:
+      context: docker/elasticsearch
+      dockerfile: Dockerfile
+    env_file:
+      - .env

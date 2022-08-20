@@ -1,7 +1,7 @@
   postgres:
     build:
       context: docker/postgres
-      dockerfile: src/trechos/dockerfile/postgres/Dockerfile
+      dockerfile: Dockerfile
       args:
         - HTTPS_PROXY=${https_proxy:-}
         - HTTP_PROXY=${http_proxy:-}

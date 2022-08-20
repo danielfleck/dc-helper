@@ -1,10 +1,11 @@
 {
-    "name": "danielfleck/dc-helper",
+    "name": "danielfleck/dchelper",
     "type": "library",
     "license": "MIT",
+    "homepage":"https://github.com/danielfleck/dchelper",
     "autoload": {
         "psr-4": {
-            "Danielfleck\\DcHelper\\": "src/"
+            "DanielFleck\\DcHelper\\": "src/"
         }
     },
     "authors": [
@@ -13,10 +14,8 @@
             "email": "danielfleck@gmail.com"
         }
     ],
-    "minimum-stability": "stable",
-    "require": {
-    	"php": ">8.1",
-    	"ext-imagick": "*",
-	"ext-curl": "*"
-    }
+    "bin": [
+        "bin/dch"
+    ],
+    "minimum-stability": "stable"
 }

@@ -1,0 +1,6 @@
+  rabbitmq:
+    build:
+      context: docker/rabbitmq
+      dockerfile: Dockerfile
+    env_file:
+      - .env
