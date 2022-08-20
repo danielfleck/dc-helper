@@ -1,1 +1,5 @@
 FROM node:16.17.0
+
+RUN mkdir /home/node/app
+VOLUME /home/node/app
+WORKDIR /home/node/app
