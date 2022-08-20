@@ -223,7 +223,7 @@ if [ -z "$DC_SKIP_CHECKS" ]; then
     if "${DOCKER_COMPOSE[@]}" ps "$APP_SERVICE" 2>&1 | grep 'Exit\|exited'; then
         echo "${BOLD}Encerrando contêineres antigos...${NC}" >&2
 
-        "${DOCKER_COMPOSE[@]}" down --remove-orphans --rmi local > /dev/null 2>&1
+        "${DOCKER_COMPOSE[@]}" down --remove-orphans > /dev/null 2>&1
 
         EXEC="no"
     elif [ -z "$("${DOCKER_COMPOSE[@]}" ps -q)" ]; then
@@ -262,28 +262,6 @@ elif [ "$1" == "composer" ]; then
         ARGS+=(exec)
         [ ! -t 0 ] && ARGS+=(-T)
         ARGS+=("$APP_SERVICE" "composer" "$@")
-    else
-        dc_is_not_running
-    fi
-
-elif [ "$1" == "node" ]; then
-    shift 1
-
-    if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec)
-        [ ! -t 0 ] && ARGS+=(-T)
-        ARGS+=("node" "node" "$@")
-    else
-        dc_is_not_running
-    fi
-
-elif [ "$1" == "yarn" ]; then
-    shift 1
-
-    if [ "$EXEC" == "yes" ]; then
-        ARGS+=(exec)
-        [ ! -t 0 ] && ARGS+=(-T)
-        ARGS+=("node" "yarn" "$@")
     else
         dc_is_not_running
     fi
